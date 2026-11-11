@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LDD App · รวมแอป กสด.</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌱</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600&family=Sarabun:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f4f1ea; --card:#ffffff; --ink:#1f2a24; --muted:#6b756f; --line:#e6e1d6;
+    --brand:#1f5c3d; --brand2:#2f7d52; --soil:#8a5a2b;
+    --c-fin:#c98a12; --c-fin-bg:#fdf3dc;
+    --c-hr:#2563a8;  --c-hr-bg:#e3eefb;
+    --c-act:#b0446a; --c-act-bg:#fbe6ee;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--ink)}
+  header{
+    background:linear-gradient(135deg,var(--brand) 0%,var(--brand2) 60%,var(--soil) 140%);
+    color:#fff;padding:36px 20px 64px;text-align:center
+  }
+  header .logo{font-size:44px;line-height:1}
+  header h1{font-family:'Prompt',sans-serif;font-weight:600;font-size:30px;margin:10px 0 4px}
+  header p{margin:0;opacity:.85}
+  main{max-width:1040px;margin:-36px auto 40px;padding:0 16px}
+  .search{
+    display:flex;align-items:center;gap:10px;background:var(--card);border-radius:14px;
+    padding:12px 16px;box-shadow:0 6px 20px rgba(0,0,0,.08);margin-bottom:22px
+  }
+  .search input{border:0;outline:0;font:inherit;font-size:16px;width:100%;background:transparent}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px}
+  .chip{
+    font-family:'Prompt',sans-serif;font-size:14px;border:1px solid var(--line);background:var(--card);
+    padding:7px 14px;border-radius:999px;cursor:pointer;color:var(--ink)
+  }
+  .chip.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+  section{margin-bottom:30px}
+  section h2{
+    font-family:'Prompt',sans-serif;font-weight:600;font-size:19px;margin:0 0 12px;
+    display:flex;align-items:center;gap:8px
+  }
+  section h2 .count{font-size:13px;font-weight:500;color:var(--muted)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px}
+  a.app{
+    display:flex;gap:14px;align-items:flex-start;text-decoration:none;color:inherit;
+    background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;
+    transition:transform .15s,box-shadow .15s,border-color .15s
+  }
+  a.app:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(0,0,0,.08);border-color:transparent}
+  .icon{
+    flex:0 0 52px;height:52px;border-radius:14px;display:grid;place-items:center;font-size:28px
+  }
+  .fin .icon{background:var(--c-fin-bg)} .hr .icon{background:var(--c-hr-bg)} .act .icon{background:var(--c-act-bg)}
+  .app h3{font-family:'Prompt',sans-serif;font-weight:500;font-size:16px;margin:2px 0 4px}
+  .app p{margin:0;font-size:14px;color:var(--muted);line-height:1.5}
+  .app .go{margin-left:auto;color:var(--muted);font-size:18px;align-self:center}
+  .tag{display:inline-block;font-size:12px;padding:2px 8px;border-radius:6px;margin-top:8px;font-family:'Prompt',sans-serif}
+  .fin .tag{background:var(--c-fin-bg);color:var(--c-fin)}
+  .hr .tag{background:var(--c-hr-bg);color:var(--c-hr)}
+  .act .tag{background:var(--c-act-bg);color:var(--c-act)}
+  .empty{display:none;text-align:center;color:var(--muted);padding:30px}
+  footer{text-align:center;color:var(--muted);font-size:13px;padding:10px 0 30px}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">🌱</div>
+  <h1>LDD App</h1>
+  <p>รวมแอปงาน กสด. · กรมพัฒนาที่ดิน — กดเพื่อเปิดใช้งาน</p>
+</header>
+
+<main>
+  <div class="search">
+    <span>🔍</span>
+    <input id="q" type="search" placeholder="ค้นหาแอป เช่น งบประมาณ, ลา, กฐิน..." autocomplete="off">
+  </div>
+  <div class="chips" id="chips"></div>
+  <div id="list"></div>
+  <div class="empty" id="empty">ไม่พบแอปที่ค้นหา</div>
+</main>
+
+<footer>LDD App · อัปเดตล่าสุด พฤศจิกายน 2569</footer>
+
+<script>
+const CATS = [
+  {id:'fin', name:'งบประมาณและการเงิน', icon:'💰'},
+  {id:'hr',  name:'บุคลากร',             icon:'👥'},
+  {id:'act', name:'กิจกรรม',             icon:'🎉'},
+];
+
+const APPS = [
+  {cat:'fin', icon:'📊', name:'ติดตามงบประมาณ สงป.301',
+   desc:'ติดตามแผน/ผลการใช้จ่ายงบประมาณ ตามแบบ สงป.301',
+   url:'https://script.google.com/macros/s/AKfycbw3onCCHs-9YpA9NixrYTaNnYmiBuE4DS7YpWunHc_GqmjYJPsXsp7awApLXznOlwxO6Q/exec'},
+  {cat:'fin', icon:'🚗', name:'แดชบอร์ดค่าใช้จ่ายเดินทางไปราชการ',
+   desc:'สรุปค่าใช้จ่ายเดินทางไปราชการ กสด.',
+   url:'https://script.google.com/macros/s/AKfycbzVSDC7aqLaH_jMzNyxkBxwzlXW7S4XpD_oJEbgyAnE6PQIWDOZu9VNOJ7La7O1d3Yz/exec'},
+  {cat:'fin', icon:'🧾', name:'บัญชีรายรับ-รายจ่าย ฝ่ายบริหาร',
+   desc:'บันทึกและสรุปรายรับ-รายจ่าย ฝ่ายบริหารทั่วไป (บร.)',
+   url:'https://script.google.com/macros/s/AKfycby4WRkiaY0iD6ux514rVUMFZ-wXyunhGNK6tpBENt0PEjvZpGGb9Ui2nXePU72mLagT/exec'},
+  {cat:'hr', icon:'🗂️', name:'ระบบข้อมูลกลาง กสด.',
+   desc:'ฐานข้อมูลกลางของ กสด.',
+   url:'https://script.google.com/macros/s/AKfycbx4YQZdvOevZ1hPpasRf0h5mh1zQscyfuHX1xNy1mmxHSPq_Zk2Fj2FBmFtsgXGZg_X7w/exec'},
+  {cat:'hr', icon:'⭐', name:'ระบบประเมินผล พนักงานราชการ',
+   desc:'ประเมินผลและเลื่อนค่าตอบแทน พนักงานราชการ',
+   url:'https://script.google.com/macros/s/AKfycbzYJ-0nHfvxQ5TuAYP9u0EyXS-5V6nfnCK8KqUBrwN9yElKoTemXhhWgB62rXOmmqA_ig/exec'},
+  {cat:'hr', icon:'⏰', name:'สถิติการลา · มาสาย · ลืมสแกนนิ้ว',
+   desc:'สถิติของผู้รับจ้างเหมาบริการ กสด.',
+   url:'https://script.google.com/macros/s/AKfycbxUBEIpReYKln6PqJDgQzT1oxEGXXGUwt1LWY0peFmJwFUyup4t7qQh7zjKo47CXb4E/exec'},
+  {cat:'act', icon:'🙏', name:'กฐินกรม กสด.',
+   desc:'ติดตามยอดบริจาคกฐินของบุคลากร กสด.',
+   url:'https://script.google.com/macros/s/AKfycbw5WtgKMvFDr9w5Rq-1f9KFsjnzQ2LxycgpIYSyh9BHemgZXvvyfeJ5Bynm5_1P-hvC/exec'},
+];
+
+let active = 'all';
+const $ = s => document.querySelector(s);
+
+function renderChips(){
+  const all = [{id:'all',name:'ทั้งหมด',icon:'📱'}, ...CATS];
+  $('#chips').innerHTML = all.map(c =>
+    `<button class="chip ${c.id===active?'active':''}" data-id="${c.id}">${c.icon} ${c.name}</button>`).join('');
+  document.querySelectorAll('.chip').forEach(b => b.onclick = () => { active = b.dataset.id; renderChips(); render(); });
+}
+
+function render(){
+  const q = $('#q').value.trim().toLowerCase();
+  let total = 0;
+  $('#list').innerHTML = CATS.filter(c => active==='all' || c.id===active).map(c => {
+    const items = APPS.filter(a => a.cat===c.id &&
+      (!q || (a.name+' '+a.desc).toLowerCase().includes(q)));
+    total += items.length;
+    if(!items.length) return '';
+    return `<section>
+      <h2>${c.icon} ${c.name} <span class="count">${items.length} แอป</span></h2>
+      <div class="grid">${items.map(a => `
+        <a class="app ${a.cat}" href="${a.url}" target="_blank" rel="noopener">
+          <div class="icon">${a.icon}</div>
+          <div>
+            <h3>${a.name}</h3>
+            <p>${a.desc}</p>
+            <span class="tag">${c.name}</span>
+          </div>
+          <span class="go">↗</span>
+        </a>`).join('')}</div>
+    </section>`;
+  }).join('');
+  $('#empty').style.display = total ? 'none' : 'block';
+}
+
+$('#q').addEventListener('input', render);
+renderChips(); render();
+</script>
+</body>
+</html>
